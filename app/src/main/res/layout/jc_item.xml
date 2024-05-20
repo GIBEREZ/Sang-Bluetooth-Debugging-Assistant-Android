@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="120dp">
+
+    <LinearLayout
+        android:id="@+id/linearLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintStart_toEndOf="@+id/imageView"
+        app:layout_constraintTop_toTopOf="@+id/imageView">
+
+        <TextView
+            android:id="@+id/item_Name"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="设备：">
+        </TextView>
+
+        <TextView
+            android:id="@+id/item_Address"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="地址：">
+        </TextView>
+
+        <TextView
+            android:id="@+id/item_Address"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="部位：">
+        </TextView>
+
+        <TextView
+            android:id="@+id/item_Address"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="状态：">
+        </TextView>
+
+        <TextView
+            android:id="@+id/item_Address"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="温度：">
+        </TextView>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintStart_toEndOf="@+id/linearLayout"
+        app:layout_constraintTop_toTopOf="@+id/imageView">
+
+        <TextView
+            android:id="@+id/jc_item_Name"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="未知设备">
+        </TextView>
+
+        <TextView
+            android:id="@+id/jc_item_Address"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="XX-XX-XX-XX-XX-XX">
+        </TextView>
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:background="@drawable/bluetuth"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:layout_editor_absoluteY="20dp">
+    </ImageView>
+</androidx.constraintlayout.widget.ConstraintLayout>

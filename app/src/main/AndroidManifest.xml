@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!--  允许应用程序连接到配对的蓝牙设备  -->
+    <uses-permission android:name="android.permission.BLUETOOTH"/>
+    <!--  需要能够发现和配对附近的蓝牙设备  -->
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN"/>
+    <!--  允许应用程序发现和配对蓝牙设备  -->
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
+    <!--  需要能够连接到配对的蓝牙设备  -->
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT"/>
+    <!--  允许应用程序在没有用户交互的情况下配对蓝牙设备，并允许或禁止电话簿访问或消息访问  -->
+    <uses-permission android:name="android.permission.BLUETOOTH_PRIVILEGED" tools:ignore="ProtectedPermissions" />
+    <!--  需要能够向附近的蓝牙设备做广告 Android 12 -->
+    <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE"/>
+    <uses-permission android:name="com.google.android.things.permission.MANAGE_BLUETOOTH"/>
+    <!--  定位权限获取 -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+
+
+    <application
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.LanYa"
+        tools:targetApi="31">
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>

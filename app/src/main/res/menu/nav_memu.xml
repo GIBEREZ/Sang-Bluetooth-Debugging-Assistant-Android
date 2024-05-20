@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/navigation_jc"
+        android:title="监测"
+        android:icon="@drawable/nav_jc"/>
+    <item
+        android:id="@+id/navigation_global"
+        android:title="扫描蓝牙"
+        android:icon="@drawable/nav_global"/>
+    <item
+        android:id="@+id/navigation_setting"
+        android:title="系统"
+        android:icon="@drawable/nav_setting"/>
+</menu>
