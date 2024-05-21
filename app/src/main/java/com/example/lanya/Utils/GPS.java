@@ -53,7 +53,7 @@ public class GPS {
                         new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION},
                         2);
             } else {
-                Log.i("定位权限：", "已获取前台和后台定位权限");
+                Log.i("定位权限", "已获取前台和后台定位权限");
                 locationPermissionGranted = true;
             }
         }

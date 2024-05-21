@@ -5,6 +5,10 @@
         android:title="监测"
         android:icon="@drawable/nav_jc"/>
     <item
+        android:id="@+id/navigation_message"
+        android:title="通讯功能"
+        android:icon="@drawable/nav_message"/>
+    <item
         android:id="@+id/navigation_global"
         android:title="扫描蓝牙"
         android:icon="@drawable/nav_global"/>

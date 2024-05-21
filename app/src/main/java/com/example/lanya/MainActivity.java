@@ -18,8 +18,8 @@ import com.example.lanya.Utils.Bluetooth;
 import com.example.lanya.Utils.GPS;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
-import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
     public GPS gps_utils = new GPS(this);
@@ -27,6 +27,7 @@ public class MainActivity extends AppCompatActivity {
     private final JcFragment mJcFragment = new JcFragment();
     private final GlobalFragment mGlobalFragment = new GlobalFragment(bluetooth);
     private final SettingFragment mSettingFragment = new SettingFragment();
+    Bluetooth.ConnectedDevice.SPP_Device Sdevice;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -38,7 +39,10 @@ public class MainActivity extends AppCompatActivity {
         bluetooth.init();
         Set<BluetoothDevice> deviceSet = bluetooth.getPairList();
 
-        Bluetooth.ConnectedDevice Cdevice = new Bluetooth.ConnectedDevice(bluetooth.mbluetoothAdapter,"C4:AC:AA:59:86:42", this);
+        Bluetooth.ConnectedDevice Cdevice = new Bluetooth.ConnectedDevice(bluetooth.mbluetoothAdapter,"94:49:18:0A:1E:91", this);
+        Sdevice = new Bluetooth.ConnectedDevice.SPP_Device(Cdevice.mdevice,UUID.fromString("00001101-0000-1000-8000-00805f9b34fb"));
+        Sdevice.connect();
+        Sdevice.send("Hello World!");
     }
 
     /**

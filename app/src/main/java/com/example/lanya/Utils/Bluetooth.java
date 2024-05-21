@@ -188,7 +188,7 @@ public class Bluetooth {
     }
 
     public static class ConnectedDevice {
-        BluetoothDevice mdevice;
+        public BluetoothDevice mdevice;
         BluetoothGatt mbluetoothGatt;
         Activity mactivity;
         boolean ConStatus = false;
@@ -239,23 +239,26 @@ public class Bluetooth {
             @Override
             public void onServicesDiscovered(BluetoothGatt gatt, int status) {
                 if (status == BluetoothGatt.GATT_SUCCESS) {
-                    Log.i("蓝牙连接功能","正在尝试获取UUID");
+                    Log.i("蓝牙连接功能", "正在尝试获取UUID");
                     // 获取已发现的服务
                     List<BluetoothGattService> services = mbluetoothGatt.getServices();
-                    for (BluetoothGattService service : services) {
-                        UUID serviceUUID = service.getUuid();
-                        System.out.println("Service UUID: " + serviceUUID);
-                        List<BluetoothGattCharacteristic> characteristics = service.getCharacteristics();
-                        for (BluetoothGattCharacteristic characteristic : characteristics) {
-                            UUID characteristicUUID = characteristic.getUuid();
-                            System.out.println("Characteristic UUID: " + characteristicUUID);
-                        }
-                    }
+                    String deviceUuid = mdevice.getUuids()[0].toString();
+                    Log.i("蓝牙连接功能", "deviceUUID:"+deviceUuid);
+
+                    //for (BluetoothGattService service : services) {
+                    //    UUID serviceUUID = service.getUuid();
+                    //    System.out.println("Service UUID: " + serviceUUID);
+                    //    List<BluetoothGattCharacteristic> characteristics = service.getCharacteristics();
+                    //    for (BluetoothGattCharacteristic characteristic : characteristics) {
+                    //        UUID characteristicUUID = characteristic.getUuid();
+                    //        System.out.println("Characteristic UUID: " + characteristicUUID);
+                    //    }
+                    //}
                 }
             }
         };
 
-        public static class SocketDevice{
+        public static class SPP_Device{
             boolean socketStatus = false;
             BluetoothDevice mdevice;
             BluetoothSocket socket = null;
@@ -263,16 +266,18 @@ public class Bluetooth {
             InputStream inputStream;
             HandlerThread handlerThread;
             Handler handler;
-            UUID SPP_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB"); // SPP UUID是固定的 不可修改 其他UUID请自行参考Android开放的蓝牙协议通信结构
+            UUID SPP_UUID;
 
-            public SocketDevice(BluetoothDevice device) {
+            public SPP_Device(BluetoothDevice device, UUID SPP_UUID) {
                 this.mdevice = device;
+                this.SPP_UUID = SPP_UUID;
             }
 
             public void connect() {
                 try {
                     socket = mdevice.createRfcommSocketToServiceRecord(SPP_UUID);
                     socket.connect();
+                    Log.i("已连接Socket设备", "连接到: " + mdevice.getName());
                     socketStatus = true;
                     handlerThread = new HandlerThread("BluetoothHandlerThread");
                     handlerThread.start();
@@ -313,6 +318,8 @@ public class Bluetooth {
                 try {
                     outputStream = socket.getOutputStream();
                     outputStream.write(msg.getBytes());
+                    outputStream.flush();
+                    Log.i("已连接Socket设备","发送数据："+msg);
                 } catch (IOException e) {
                     e.printStackTrace();
                     return false;
@@ -322,11 +329,12 @@ public class Bluetooth {
 
             public void read(Message msg) {
                 try {
+                    Log.i("已连接Socket设备", "收到数据，解析中");
                     byte[] buffer = new byte[1024];
                     int bytes;
                     while ((bytes = inputStream.read(buffer)) != -1) {
                         String receivedMessage = new String(buffer, 0, bytes);
-
+                        Log.i("已连接Socket设备", "收到:" + receivedMessage);
                         // 事件处理模型，还未写
                     }
                 } catch (IOException e) {
