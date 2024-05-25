@@ -10,12 +10,19 @@ class userBLE():
         self.resp_data = None
         self.ble = None
         self.state = 0
-        self.Service = []
+        self.interval = 100
         self.Service_s = ()
         self.ble = BLE()
     
     def setName(self, Name):
         self.Name = Name
+        name_bytes = bytes(self.Name, 'utf-8')
+        self.adv_data = bytearray()
+        self.adv_data.extend(b'\x02\x01\x06')
+        self.adv_data.extend(bytes([len(name_bytes) + 1]))
+        self.adv_data.extend(b'\x09')
+        self.adv_data.extend(name_bytes)
+
         
     def setRespdata(self, resp_data):
         self.resp_data = resp_data
@@ -32,21 +39,16 @@ class userBLE():
             print("蓝牙断开连接")
             self.state = 2
             
-        self.broadcast()
+        self.broadcast(self.interval)
         
     def broadcast(self, interval):
-        self.adv_data = bytearray()
-        self.adv_data.extend(b'\x02\x01\x06')  # MAC地址广播
-        
-        if self.Name != None:
-            self.adv_data.extend(bytes(len(self.Name) + 1))  # 设备名称长度定义
-            self.adv_data.extend(b'\x09')  # 设备名称数据类型
-            self.adv_data.extend(bytes(self.Name,'utf-8'))  # 将设备名称转义byte
+        self.interval = interval
         
         if self.resp_data != None:
-            self.ble.gap_advertise(interval, self.adv_data, resp_data=self.resp_data)
+            self.ble.gap_advertise(interval, adv_data=self.adv_data, resp_data=self.resp_data)
         else:
-            self.ble.gap_advertise(interval, self.adv_data)
+            print(self.adv_data)
+            self.ble.gap_advertise(interval, adv_data=self.adv_data)
             
         self.ble.irq(self.ble_irq)
         
@@ -57,8 +59,8 @@ class userBLE():
         self.ble.active(False)
         
 muserBLE = userBLE();
-muserBLE.open()
 muserBLE.setName("Sang")
+muserBLE.open()
 muserBLE.addService(0x9000,
     ((ubluetooth.UUID(0x9001),ubluetooth.FLAG_READ | ubluetooth.FLAG_WRITE,),
      (ubluetooth.UUID(0x9002),ubluetooth.FLAG_READ | ubluetooth.FLAG_NOTIFY,),)
