@@ -25,6 +25,7 @@ public class MainActivity extends AppCompatActivity {
     public GPS gps_utils = new GPS(this);
     public Bluetooth bluetooth = new Bluetooth(this);
     private final JcFragment mJcFragment = new JcFragment();
+    private final MessageFragment mMessageFragment = new MessageFragment();
     private final GlobalFragment mGlobalFragment = new GlobalFragment(bluetooth);
     private final SettingFragment mSettingFragment = new SettingFragment();
     Bluetooth.ConnectedDevice.SPP_Device Sdevice;
@@ -39,10 +40,9 @@ public class MainActivity extends AppCompatActivity {
         bluetooth.init();
         Set<BluetoothDevice> deviceSet = bluetooth.getPairList();
 
-        Bluetooth.ConnectedDevice Cdevice = new Bluetooth.ConnectedDevice(bluetooth.mbluetoothAdapter,"94:49:18:0A:1E:91", this);
+        Bluetooth.ConnectedDevice Cdevice = new Bluetooth.ConnectedDevice(bluetooth.mbluetoothAdapter,"C8:8C:08:04:37:55", this);
         Sdevice = new Bluetooth.ConnectedDevice.SPP_Device(Cdevice.mdevice,UUID.fromString("00001101-0000-1000-8000-00805f9b34fb"));
         Sdevice.connect();
-        Sdevice.send("Hello World!");
     }
 
     /**
@@ -53,24 +53,34 @@ public class MainActivity extends AppCompatActivity {
         // 启动APP默认显示监测页面
         FragmentManager fragmentManager = getSupportFragmentManager();
         fragmentManager.beginTransaction().add(R.id.content, mJcFragment, "1").commit();
-        fragmentManager.beginTransaction().add(R.id.content, mGlobalFragment, "2").hide(mGlobalFragment).commit();
-        fragmentManager.beginTransaction().add(R.id.content, mSettingFragment, "3").hide(mSettingFragment).commit();
+        fragmentManager.beginTransaction().add(R.id.content, mMessageFragment, "2").hide(mMessageFragment).commit();
+        fragmentManager.beginTransaction().add(R.id.content, mGlobalFragment, "3").hide(mGlobalFragment).commit();
+        fragmentManager.beginTransaction().add(R.id.content, mSettingFragment, "4").hide(mSettingFragment).commit();
         // 点击事件设置
         BottomNavigationView bottomNavigationView = findViewById(R.id.navigation);
         bottomNavigationView.setOnItemSelectedListener(item -> {
             switch (item.getItemId()) {
                 case R.id.navigation_jc:
                     fragmentManager.beginTransaction().show(mJcFragment).commit();
+                    fragmentManager.beginTransaction().hide(mMessageFragment).commit();
+                    fragmentManager.beginTransaction().hide(mGlobalFragment).commit();
+                    fragmentManager.beginTransaction().hide(mSettingFragment).commit();
+                    break;
+                case R.id.navigation_message:
+                    fragmentManager.beginTransaction().hide(mJcFragment).commit();
+                    fragmentManager.beginTransaction().show(mMessageFragment).commit();
                     fragmentManager.beginTransaction().hide(mGlobalFragment).commit();
                     fragmentManager.beginTransaction().hide(mSettingFragment).commit();
                     break;
                 case R.id.navigation_global:
                     fragmentManager.beginTransaction().hide(mJcFragment).commit();
+                    fragmentManager.beginTransaction().hide(mMessageFragment).commit();
                     fragmentManager.beginTransaction().show(mGlobalFragment).commit();
                     fragmentManager.beginTransaction().hide(mSettingFragment).commit();
                     break;
                 case R.id.navigation_setting:
                     fragmentManager.beginTransaction().hide(mJcFragment).commit();
+                    fragmentManager.beginTransaction().hide(mMessageFragment).commit();
                     fragmentManager.beginTransaction().hide(mGlobalFragment).commit();
                     fragmentManager.beginTransaction().show(mSettingFragment).commit();
                     break;

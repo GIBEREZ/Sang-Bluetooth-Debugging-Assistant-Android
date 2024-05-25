@@ -175,7 +175,7 @@ public class Bluetooth {
             pairedDevices = mbluetoothAdapter.getBondedDevices();
             if (pairedDevices.size() > 0) {
                 for (BluetoothDevice device : pairedDevices) {
-                    // 获取设备名称和地址
+                    // 获取设备名称和地址3
                     String deviceName = device.getName();
                     String deviceAddress = device.getAddress();
                     Log.i("蓝牙功能","配对设备名称：" + deviceName + "\t配对设备地址：" + deviceAddress);
@@ -241,10 +241,14 @@ public class Bluetooth {
                 if (status == BluetoothGatt.GATT_SUCCESS) {
                     Log.i("蓝牙连接功能", "正在尝试获取UUID");
                     // 获取已发现的服务
-                    List<BluetoothGattService> services = mbluetoothGatt.getServices();
-                    String deviceUuid = mdevice.getUuids()[0].toString();
-                    Log.i("蓝牙连接功能", "deviceUUID:"+deviceUuid);
+                    try {
+                        String deviceUuid = mdevice.getUuids()[0].toString();
+                        Log.i("蓝牙连接功能", "deviceUUID:"+deviceUuid);
+                    } catch (SecurityException e) {
+                        e.printStackTrace();
+                    }
 
+                    //List<BluetoothGattService> services = mbluetoothGatt.getServices();
                     //for (BluetoothGattService service : services) {
                     //    UUID serviceUUID = service.getUuid();
                     //    System.out.println("Service UUID: " + serviceUUID);
