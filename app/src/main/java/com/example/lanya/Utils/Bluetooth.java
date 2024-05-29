@@ -10,9 +10,7 @@ import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothSocket;
-import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
-import android.bluetooth.le.ScanResult;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -29,7 +27,6 @@ import androidx.core.content.ContextCompat;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -37,9 +34,6 @@ import java.util.UUID;
 public class Bluetooth {
     private final Activity activity;                                                                // 页面实例
     public BluetoothAdapter mbluetoothAdapter;                                                      // 蓝牙实例
-    private BluetoothLeScanner mBluetoothLeScanner;                                                 // 蓝牙搜索实例
-    public Set<BluetoothDevice> mBluetoothDevice;                                                   // 蓝牙设备列表(不重复)
-    public ScanCallback mScanCallback;                                                              // 全局搜索回调函数对象
 
     public Bluetooth(Activity activity) {
         this.activity = activity;
@@ -61,7 +55,6 @@ public class Bluetooth {
         }
 
         mbluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        mBluetoothDevice = new HashSet<>();
 
         if (mbluetoothAdapter == null) {
             Log.e("蓝牙功能", "设备不支持蓝牙");
@@ -84,52 +77,29 @@ public class Bluetooth {
         }
     }
 
-    public ScanCallback mCustomScanCallback = new ScanCallback() {
-        @Override
-        public void onScanResult(int callbackType, ScanResult result) {
-            super.onScanResult(callbackType, result);
-            if (result != null && result.getDevice() != null) {
-                BluetoothDevice device = result.getDevice();
-                if (mBluetoothDevice.add(device)) {
-                    try {
-                        String deviceName = device.getName();
-                        if (deviceName == null || deviceName.isEmpty()) {
-                            Log.i("蓝牙设备", "未知设备：已用MAC代替 [" + device.getAddress() + "]");
-                        }
-                        else {
-                            Log.i("蓝牙设备", "设备名：" + deviceName + "\tMAC：[" + device.getAddress() + "]");
-                        }
-                    } catch (SecurityException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
+    public static class Search {
+        Bluetooth mbluetooth;
+        public Search(Bluetooth bluetooth)
+        {
+            this.mbluetooth = bluetooth;
         }
-    };
 
-    public void open(ScanCallback scanCallback) {
-        mScanCallback = scanCallback;
-        mBluetoothLeScanner = mbluetoothAdapter.getBluetoothLeScanner();
-        try {
-            mBluetoothDevice.clear();
-            mBluetoothLeScanner.startScan(mScanCallback);
-        } catch (SecurityException e) {
-            e.printStackTrace();
+        public void start(ScanCallback scanCallback) {
+
+        }
+
+        public void stop() {
+
         }
     }
 
-    public void stop() {
-        try {
-            if (mBluetoothLeScanner != null && mScanCallback != null) {
-                try {
-                    mBluetoothLeScanner.stopScan(mScanCallback);
-                } catch (SecurityException e) {
-                    e.printStackTrace();
-                }
-                mScanCallback = null;
-            }
-        } catch (SecurityException e) {
-            e.printStackTrace();
+    public static class BluetoothPairList {
+        public BluetoothPairList(){
+
+        }
+
+        public Set<BluetoothDevice> getPairList() {
+            return null;
         }
     }
 
@@ -169,24 +139,6 @@ public class Bluetooth {
         }
     }
 
-    public Set<BluetoothDevice> getPairList() {
-        Set<BluetoothDevice> pairedDevices = null;
-        try {
-            pairedDevices = mbluetoothAdapter.getBondedDevices();
-            if (pairedDevices.size() > 0) {
-                for (BluetoothDevice device : pairedDevices) {
-                    // 获取设备名称和地址3
-                    String deviceName = device.getName();
-                    String deviceAddress = device.getAddress();
-                    Log.i("蓝牙功能","配对设备名称：" + deviceName + "\t配对设备地址：" + deviceAddress);
-                }
-            }
-        } catch (SecurityException e) {
-            e.printStackTrace();
-        }
-        return pairedDevices;
-    }
-
     public static class ConnectedDevice {
         public BluetoothDevice mdevice;
         BluetoothGatt mbluetoothGatt;
@@ -213,7 +165,6 @@ public class Bluetooth {
         }
 
         private final BluetoothGattCallback connectCallback = new BluetoothGattCallback() {
-
             @Override
             public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
                 if (newState == BluetoothProfile.STATE_CONNECTED) {
@@ -239,25 +190,25 @@ public class Bluetooth {
             @Override
             public void onServicesDiscovered(BluetoothGatt gatt, int status) {
                 if (status == BluetoothGatt.GATT_SUCCESS) {
-                    Log.i("蓝牙连接功能", "正在尝试获取UUID");
+                    //Log.i("蓝牙连接功能", "正在尝试获取UUID");
                     // 获取已发现的服务
-                    try {
-                        String deviceUuid = mdevice.getUuids()[0].toString();
-                        Log.i("蓝牙连接功能", "deviceUUID:"+deviceUuid);
-                    } catch (SecurityException e) {
-                        e.printStackTrace();
-                    }
-
-                    //List<BluetoothGattService> services = mbluetoothGatt.getServices();
-                    //for (BluetoothGattService service : services) {
-                    //    UUID serviceUUID = service.getUuid();
-                    //    System.out.println("Service UUID: " + serviceUUID);
-                    //    List<BluetoothGattCharacteristic> characteristics = service.getCharacteristics();
-                    //    for (BluetoothGattCharacteristic characteristic : characteristics) {
-                    //        UUID characteristicUUID = characteristic.getUuid();
-                    //        System.out.println("Characteristic UUID: " + characteristicUUID);
-                    //    }
+                    //try {
+                    //    String deviceUuid = mdevice.getUuids()[0].toString();
+                    //    Log.i("蓝牙连接功能", "deviceUUID:"+deviceUuid);
+                    //} catch (SecurityException e) {
+                    //    e.printStackTrace();
                     //}
+
+                    List<BluetoothGattService> services = mbluetoothGatt.getServices();
+                    for (BluetoothGattService service : services) {
+                        UUID serviceUUID = service.getUuid();
+                        System.out.println("服务 UUID: " + serviceUUID);
+                        List<BluetoothGattCharacteristic> characteristics = service.getCharacteristics();
+                        for (BluetoothGattCharacteristic characteristic : characteristics) {
+                            UUID characteristicUUID = characteristic.getUuid();
+                            System.out.println("特征 UUID: " + characteristicUUID);
+                        }
+                    }
                 }
             }
         };

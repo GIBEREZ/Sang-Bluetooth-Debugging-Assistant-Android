@@ -24,7 +24,7 @@ import java.util.UUID;
 public class MainActivity extends AppCompatActivity {
     public GPS gps_utils = new GPS(this);
     public Bluetooth bluetooth = new Bluetooth(this);
-    private final JcFragment mJcFragment = new JcFragment();
+    private final JcFragment mJcFragment = new JcFragment(bluetooth);
     private final MessageFragment mMessageFragment = new MessageFragment();
     private final GlobalFragment mGlobalFragment = new GlobalFragment(bluetooth);
     private final SettingFragment mSettingFragment = new SettingFragment();
@@ -38,11 +38,9 @@ public class MainActivity extends AppCompatActivity {
 
         gps_utils.init();
         bluetooth.init();
-        Set<BluetoothDevice> deviceSet = bluetooth.getPairList();
-
-        Bluetooth.ConnectedDevice Cdevice = new Bluetooth.ConnectedDevice(bluetooth.mbluetoothAdapter,"C8:8C:08:04:37:55", this);
-        Sdevice = new Bluetooth.ConnectedDevice.SPP_Device(Cdevice.mdevice,UUID.fromString("00001101-0000-1000-8000-00805f9b34fb"));
-        Sdevice.connect();
+        //Bluetooth.ConnectedDevice Cdevice = new Bluetooth.ConnectedDevice(bluetooth.mbluetoothAdapter,"C4:AC:AA:59:86:42", this);
+        //Sdevice = new Bluetooth.ConnectedDevice.SPP_Device(Cdevice.mdevice,UUID.fromString("00001101-0000-1000-8000-00805f9b34fb"));
+        //Sdevice.connect();
     }
 
     /**

@@ -1,0 +1,28 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="10dp">
+
+    <TextView
+        android:id="@+id/popup_text1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="这是一个PopupWindow"
+        android:textColor="@color/black"
+        android:textSize="16sp" />
+    <TextView
+        android:id="@+id/popup_text2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="这是一个PopupWindow"
+        android:textColor="@color/black"
+        android:textSize="16sp" />
+    <TextView
+        android:id="@+id/popup_text3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="这是一个PopupWindow"
+        android:textColor="@color/black"
+        android:textSize="16sp" />
+</LinearLayout>

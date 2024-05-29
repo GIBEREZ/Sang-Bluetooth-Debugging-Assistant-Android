@@ -3,7 +3,11 @@ package com.example.lanya;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.le.BluetoothLeScanner;
+import android.bluetooth.le.ScanCallback;
+import android.bluetooth.le.ScanResult;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,21 +25,99 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.lanya.Utils.Bluetooth;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class GlobalFragment extends Fragment {
     public Button open_button;
     public Button close_button;
     public RecyclerView recyclerview;
-    private final Bluetooth bluetooth;
+    private final Bluetooth mbluetooth;
+    public Set<BluetoothDevice> mBluetoothDevice = new HashSet<>();;  // 已被扫描的蓝牙设备（不重复）
+    public DeviceListAdapter mdeviceListAdapter;
 
     public GlobalFragment (Bluetooth bluetooth) {
-        this.bluetooth = bluetooth;
+        this.mbluetooth = bluetooth;
     }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+    }
+
+    public class Search extends Bluetooth.Search{
+
+        Bluetooth mbluetooth;   // 蓝牙实例
+        private BluetoothLeScanner mBluetoothLeScanner;                                                 // 蓝牙搜索实例
+        public ScanCallback mScanCallback;                                                              // 全局搜索回调函数对象
+        public Search(Bluetooth bluetooth) {
+            super(bluetooth);
+            this.mbluetooth = bluetooth;
+        }
+
+        public ScanCallback mCustomScanCallback = new ScanCallback() {
+            @Override
+            public void onScanResult(int callbackType, ScanResult result) {
+                super.onScanResult(callbackType, result);
+                // 添加自定义处理逻辑
+                try {
+                    BluetoothDevice device = result.getDevice();
+                    int rssi = result.getRssi();
+                    if (mBluetoothDevice.add(device)){
+                        mdeviceListAdapter.addDeviceitem(device);
+                        if (device.getName() == null || device.getName().isEmpty()) {
+                            Log.i("蓝牙设备", "未知设备：已用MAC代替 [" + device.getAddress() + "]");
+                        }
+                        else {
+                            Log.i("蓝牙设备", "设备名：" + device.getName() + "\tMAC：[" + device.getAddress() + "]\t信号强度：" + rssi);
+                        }
+                    }
+                    else {
+                        int index = mdeviceListAdapter.mDeviceList.indexOf(device);
+                        Log.i("蓝牙设备","更新广播：设备名：" + device.getName() + "\tMAC：[" + device.getAddress() + "]\t信号强度：" + rssi);
+                    }
+                } catch (SecurityException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+
+        @Override
+        public void start(ScanCallback scanCallback) {
+            super.start(scanCallback);
+
+            mdeviceListAdapter = new DeviceListAdapter(new ArrayList<>(mBluetoothDevice));
+            recyclerview.setAdapter(mdeviceListAdapter);
+            recyclerview.setLayoutManager(new LinearLayoutManager(getActivity()));
+
+            mScanCallback = scanCallback;
+            mBluetoothLeScanner = mbluetooth.mbluetoothAdapter.getBluetoothLeScanner();
+            try {
+                mBluetoothDevice.clear();
+                mdeviceListAdapter.clearData();
+                mBluetoothLeScanner.startScan(mScanCallback);
+            } catch (SecurityException e) {
+                e.printStackTrace();
+            }
+        }
+
+        @Override
+        public void stop() {
+            super.stop();
+            try {
+                if (mBluetoothLeScanner != null && mScanCallback != null) {
+                    try {
+                        mBluetoothLeScanner.stopScan(mScanCallback);
+                    } catch (SecurityException e) {
+                        e.printStackTrace();
+                    }
+                    mScanCallback = null;
+                }
+            } catch (SecurityException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     @Nullable
@@ -51,20 +133,14 @@ public class GlobalFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
-        bluetooth.init();
+        Search search = new Search(mbluetooth);
         open_button.setOnClickListener(v -> {
-            bluetooth.open(bluetooth.mCustomScanCallback);
-            recyclerview.removeAllViews();
+            search.start(search.mCustomScanCallback);
         });
         close_button.setOnClickListener(v -> {
-            bluetooth.stop();
-            DeviceListAdapter deviceListAdapter = new DeviceListAdapter(new ArrayList<>(bluetooth.mBluetoothDevice));
-            recyclerview.setAdapter(deviceListAdapter);
-            recyclerview.setLayoutManager(new LinearLayoutManager(getActivity()));
+            search.stop();
         });
     }
-
 
     public class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.ViewHolder> {
 
@@ -101,7 +177,7 @@ public class GlobalFragment extends Fragment {
                 else {
                     holder.deviceNameTextView.setText(device.getName());
                 }
-                holder.deviceAddressTextView.setText(device.getAddress());
+                holder.deviceAddressTextView.setText("MAC:" + device.getAddress());
             } catch (SecurityException e) {
                 e.printStackTrace();
             }
@@ -110,6 +186,17 @@ public class GlobalFragment extends Fragment {
         @Override
         public int getItemCount() {
             return mDeviceList.size();
+        }
+
+        public void addDeviceitem(BluetoothDevice mbluetoothdevice) {
+            int position = mDeviceList.size();
+            mDeviceList.add(mbluetoothdevice);
+            notifyItemInserted(position);
+        }
+
+        public void clearData() {
+            mDeviceList.clear();
+            notifyDataSetChanged(); // 通知 RecyclerView 更新
         }
 
         /**
@@ -126,7 +213,7 @@ public class GlobalFragment extends Fragment {
                 cardView = itemView.findViewById(R.id.DevicewItem);
                 cardView.setOnClickListener(v -> {
                     int position = getAdapterPosition();
-                    deviceDialog dialog = new deviceDialog(mDeviceList.get(position),bluetooth);
+                    deviceDialog dialog = new deviceDialog(mDeviceList.get(position),mbluetooth);
                     dialog.show(getChildFragmentManager(), "Message");
                 });
             }

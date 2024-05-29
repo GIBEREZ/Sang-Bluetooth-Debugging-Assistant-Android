@@ -1,77 +1,52 @@
-<!-- res/layout/target.xml -->
 <androidx.cardview.widget.CardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/DevicewItem"
     android:layout_width="match_parent"
-    android:layout_height="100dp"
+    android:layout_height="50dp"
     android:background="@color/white"
-    app:cardCornerRadius="40dp"
+    app:cardCornerRadius="20dp"
     app:cardElevation="10dp"
     android:layout_marginStart="20dp"
     android:layout_marginEnd="20dp"
-    android:layout_marginBottom="20dp">
+    android:layout_marginBottom="5dp">
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="100dp"
-        android:layout_marginRight="20dp"
-        android:layout_marginLeft="20dp">
-
+        android:layout_height="match_parent"
+        android:layout_marginRight="10dp"
+        android:layout_marginLeft="5dp">
         <ImageView
-            android:id="@+id/state_img"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
+            android:id="@+id/PD_item_img"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
             android:layout_alignParentStart="true"
             android:layout_centerVertical="true"
-            android:background="@drawable/bluetuth"/>
+            android:background="@drawable/bluetooth">
+        </ImageView>
 
-        <GridLayout
-            android:id="@+id/attribute"
+        <TextView
+            android:id="@+id/PD_item_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_toEndOf="@id/state_img"
-            android:layout_marginStart="20dp"
+            android:layout_toEndOf="@id/PD_item_img"
+            android:layout_toStartOf="@id/Popup"
+            android:text="设备名称"
+            android:textColor="@color/black"
+            android:textSize="18sp"
+            android:layout_centerVertical="true">
+        </TextView>
+
+        <ImageView
+            android:id="@+id/Popup"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:layout_centerVertical="true"
-            android:orientation="vertical">
+            android:layout_alignParentEnd="true"
+            android:background="@drawable/down">
+        </ImageView>
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="22dp"
-                android:text="设备："
-                android:textStyle="bold"/>
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="22dp"
-                android:text="地址："
-                android:textStyle="bold"/>
-
-        </GridLayout>
-
-        <LinearLayout
-            android:id="@+id/parameter"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_toEndOf="@id/attribute"
-            android:layout_centerVertical="true"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/Name"
-                android:layout_width="match_parent"
-                android:layout_height="22dp"
-                android:text="未搜索设备"
-                android:textStyle="bold"/>
-
-            <TextView
-                android:id="@+id/Address"
-                android:layout_width="match_parent"
-                android:layout_height="22dp"
-                android:text="XX-XX-XX-XX-XX-XX"
-                android:textStyle="bold"/>
-
-        </LinearLayout>
     </RelativeLayout>
+
 </androidx.cardview.widget.CardView>

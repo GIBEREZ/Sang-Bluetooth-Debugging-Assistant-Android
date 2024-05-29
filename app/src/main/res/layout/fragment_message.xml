@@ -7,6 +7,4 @@
     android:background="#EBEBEB"
     tools:context=".MainActivity">
 
-
-
 </FrameLayout>
