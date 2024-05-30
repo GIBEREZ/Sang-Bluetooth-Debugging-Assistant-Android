@@ -4,17 +4,17 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/DevicewItem"
     android:layout_width="match_parent"
-    android:layout_height="50dp"
+    android:layout_height="wrap_content"
     android:background="@color/white"
     app:cardCornerRadius="20dp"
     app:cardElevation="10dp"
     android:layout_marginStart="20dp"
     android:layout_marginEnd="20dp"
-    android:layout_marginBottom="5dp">
+    android:layout_marginBottom="10dp">
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:layout_marginRight="10dp"
         android:layout_marginLeft="5dp">
         <ImageView
@@ -46,7 +46,34 @@
             android:layout_alignParentEnd="true"
             android:background="@drawable/down">
         </ImageView>
-
     </RelativeLayout>
 
+    <LinearLayout
+        android:id="@+id/panel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="50dp"
+        android:layout_marginStart="30dp"
+        android:layout_marginEnd="30dp"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_marginTop="2dp"
+            android:layout_height="1dp"
+            android:background="#726F72"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="这是一个折叠面板"
+            android:textSize="18sp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="面板内容可以是任意的视图"
+            android:textSize="16sp"/>
+    </LinearLayout>
 </androidx.cardview.widget.CardView>

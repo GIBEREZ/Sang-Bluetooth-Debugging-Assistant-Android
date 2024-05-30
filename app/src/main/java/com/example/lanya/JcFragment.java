@@ -6,6 +6,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -117,14 +119,32 @@ public class JcFragment extends Fragment {
 
         public void clearData() {
             mDeviceList.clear();
-            notifyDataSetChanged(); // 通知 RecyclerView 更新
+            notifyDataSetChanged();
         }
 
         class ViewHolder extends RecyclerView.ViewHolder {
             TextView text1;
+            ImageView Image1;
+            LinearLayout panel;
+            boolean isUp = false;
             public ViewHolder(@NonNull View itemView) {
                 super(itemView);
                 text1 = itemView.findViewById(R.id.PD_item_text);
+                Image1 = itemView.findViewById(R.id.Popup);
+                panel = itemView.findViewById(R.id.panel);
+
+                panel.setVisibility(View.GONE);
+
+                Image1.setOnClickListener(v -> {
+                    if (isUp) {
+                        Image1.setBackgroundResource(R.drawable.down);
+                        panel.setVisibility(View.GONE);
+                    } else {
+                        Image1.setBackgroundResource(R.drawable.up);
+                        panel.setVisibility(View.VISIBLE);
+                    }
+                    isUp = !isUp;
+                });
             }
         }
     }
