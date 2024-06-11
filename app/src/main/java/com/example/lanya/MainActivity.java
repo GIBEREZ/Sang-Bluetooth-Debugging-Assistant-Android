@@ -2,7 +2,6 @@ package com.example.lanya;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.bluetooth.BluetoothDevice;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -17,9 +16,6 @@ import androidx.fragment.app.FragmentManager;
 import com.example.lanya.Utils.Bluetooth;
 import com.example.lanya.Utils.GPS;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-
-import java.util.Set;
-import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
     public GPS gps_utils = new GPS(this);

@@ -12,21 +12,27 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.cardview.widget.CardView;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.lanya.Utils.Bluetooth;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 public class GlobalFragment extends Fragment {
@@ -64,17 +70,20 @@ public class GlobalFragment extends Fragment {
                 try {
                     BluetoothDevice device = result.getDevice();
                     int rssi = result.getRssi();
+                    long currentTimeMillis = System.currentTimeMillis();
+                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+                    String time = sdf.format(new Date(currentTimeMillis));
                     if (mBluetoothDevice.add(device)){
-                        mdeviceListAdapter.addDeviceitem(device);
+                        mdeviceListAdapter.addDeviceitem(new Data(device, rssi, time));
                         if (device.getName() == null || device.getName().isEmpty()) {
-                            Log.i("蓝牙设备", "未知设备：已用MAC代替 [" + device.getAddress() + "]");
+                            Log.i("蓝牙设备", "未知设备：已用MAC代替 [" + device.getAddress() + "]\t信号强度：" + rssi);
                         }
                         else {
                             Log.i("蓝牙设备", "设备名：" + device.getName() + "\tMAC：[" + device.getAddress() + "]\t信号强度：" + rssi);
                         }
                     }
                     else {
-                        int index = mdeviceListAdapter.mDeviceList.indexOf(device);
+                        mdeviceListAdapter.updateData(device, rssi, time);
                         Log.i("蓝牙设备","更新广播：设备名：" + device.getName() + "\tMAC：[" + device.getAddress() + "]\t信号强度：" + rssi);
                     }
                 } catch (SecurityException e) {
@@ -87,10 +96,11 @@ public class GlobalFragment extends Fragment {
         public void start(ScanCallback scanCallback) {
             super.start(scanCallback);
 
-            mdeviceListAdapter = new DeviceListAdapter(new ArrayList<>(mBluetoothDevice));
+            mdeviceListAdapter = new DeviceListAdapter(new ArrayList<>());
             recyclerview.setAdapter(mdeviceListAdapter);
             recyclerview.setLayoutManager(new LinearLayoutManager(getActivity()));
 
+            recyclerview.setItemAnimator(null);
             mScanCallback = scanCallback;
             mBluetoothLeScanner = mbluetooth.mbluetoothAdapter.getBluetoothLeScanner();
             try {
@@ -142,12 +152,32 @@ public class GlobalFragment extends Fragment {
         });
     }
 
+    private static class Data {
+        public BluetoothDevice mDevice;
+        public int mRssi;
+        public String mTime;
+        public Data(BluetoothDevice Device, int Rssi, String Time){
+            this.mDevice = Device;
+            this.mRssi = Rssi;
+            this.mTime = Time;
+        }
+
+        // 重写equals方法，用于判断两个Data对象是否相等
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) return true;
+            if (obj == null || getClass() != obj.getClass()) return false;
+            Data data = (Data) obj;
+            return mDevice.equals(data.mDevice); // 只比较BluetoothDevice mDevice
+        }
+    }
+
     public class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.ViewHolder> {
 
-        private List<BluetoothDevice> mDeviceList;
+        private List<Data> mData;
 
-        public DeviceListAdapter(List<BluetoothDevice> deviceList) {
-            this.mDeviceList = deviceList;
+        public DeviceListAdapter(List<Data> data) {
+            this.mData = data;
         }
 
         /**
@@ -169,15 +199,28 @@ public class GlobalFragment extends Fragment {
          */
         @Override
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-            BluetoothDevice device = mDeviceList.get(position);
+            Data deviceData = mData.get(position);
             try {
-                if (device.getName() == null || device.getName().isEmpty()) {
+                if (deviceData.mDevice.getName() == null || deviceData.mDevice.getName().isEmpty()) {
                     holder.deviceNameTextView.setText("未知设备");
                 }
                 else {
-                    holder.deviceNameTextView.setText(device.getName());
+                    holder.deviceNameTextView.setText(deviceData.mDevice.getName());
                 }
-                holder.deviceAddressTextView.setText("MAC:" + device.getAddress());
+                holder.deviceAddressTextView.setText("MAC:" + deviceData.mDevice.getAddress());
+                holder.Time_text.setText("最后一次广播:" + deviceData.mTime);
+                if (deviceData.mRssi >= -20 && deviceData.mRssi < 0) {
+                    holder.Signal_img.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.signal_1));
+                } else if (deviceData.mRssi >= -40 && deviceData.mRssi < -20) {
+                    holder.Signal_img.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.signal_2));
+                } else if (deviceData.mRssi >= -60 && deviceData.mRssi < -40) {
+                    holder.Signal_img.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.signal_3));
+                } else if (deviceData.mRssi >= -80 && deviceData.mRssi < -60) {
+                    holder.Signal_img.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.signal_4));
+                } else if (deviceData.mRssi >= -100 && deviceData.mRssi < -80) {
+                    holder.Signal_img.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.signal_5));
+                }
+                holder.Rssi_text.setText(deviceData.mRssi + "dB");
             } catch (SecurityException e) {
                 e.printStackTrace();
             }
@@ -185,17 +228,34 @@ public class GlobalFragment extends Fragment {
 
         @Override
         public int getItemCount() {
-            return mDeviceList.size();
+            return mData.size();
         }
 
-        public void addDeviceitem(BluetoothDevice mbluetoothdevice) {
-            int position = mDeviceList.size();
-            mDeviceList.add(mbluetoothdevice);
+        public void addDeviceitem(Data data) {
+            int position = mData.size();
+            mData.add(data);
             notifyItemInserted(position);
+            recyclerview.setItemAnimator(new DefaultItemAnimator());
+        }
+
+        public void updateData(BluetoothDevice device, int rssi, String time){
+            int index = -1;
+            for (int i = 0; i < mData.size(); i++) {
+                if (mData.get(i).mDevice.equals(device)) {
+                    index = i;
+                    break;
+                }
+            }
+            if (index == -1){
+                return;
+            }
+            mData.set(index, new Data(device, rssi, time));
+            notifyItemChanged(index);
+            recyclerview.setItemAnimator(null);
         }
 
         public void clearData() {
-            mDeviceList.clear();
+            mData.clear();
             notifyDataSetChanged(); // 通知 RecyclerView 更新
         }
 
@@ -206,14 +266,20 @@ public class GlobalFragment extends Fragment {
             TextView deviceNameTextView;
             TextView deviceAddressTextView;
             CardView cardView;
+            TextView Time_text;
+            ImageView Signal_img;
+            TextView Rssi_text;
             ViewHolder(View itemView) {
                 super(itemView);
                 deviceNameTextView = itemView.findViewById(R.id.Name);
                 deviceAddressTextView = itemView.findViewById(R.id.Address);
                 cardView = itemView.findViewById(R.id.DevicewItem);
+                Time_text = itemView.findViewById(R.id.Time_text);
+                Signal_img = itemView.findViewById(R.id.Signal_img);
+                Rssi_text = itemView.findViewById(R.id.Rssi_text);
                 cardView.setOnClickListener(v -> {
                     int position = getAdapterPosition();
-                    deviceDialog dialog = new deviceDialog(mDeviceList.get(position),mbluetooth);
+                    deviceDialog dialog = new deviceDialog(mData.get(position).mDevice, mbluetooth);
                     dialog.show(getChildFragmentManager(), "Message");
                 });
             }

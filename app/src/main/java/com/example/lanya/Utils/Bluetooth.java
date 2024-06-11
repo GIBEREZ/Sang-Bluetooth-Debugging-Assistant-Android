@@ -20,6 +20,7 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -116,11 +117,13 @@ public class Bluetooth {
                     // 配对成功
                     // 在这里执行一些操作，例如连接到该设备
                     Log.i("蓝牙功能","配对成功");
+                    Toast.makeText(activity, "配对成功", Toast.LENGTH_SHORT).show();
                     activity.unregisterReceiver(pairingReceiver);
                 } else if (state == BluetoothDevice.BOND_NONE && prevState == BluetoothDevice.BOND_BONDING) {
                     // 配对失败
                     // 在这里执行一些处理，例如显示一个错误消息或者重试配对
                     Log.i("蓝牙功能","配对失败");
+                    Toast.makeText(activity, "配对失败", Toast.LENGTH_SHORT).show();
                     activity.unregisterReceiver(pairingReceiver);
                 }
             }
@@ -143,8 +146,10 @@ public class Bluetooth {
         public BluetoothDevice mdevice;
         BluetoothGatt mbluetoothGatt;
         Activity mactivity;
-        boolean ConStatus = false;
-
+        private final String PCOTOCOL_BLE = "BLE";
+        private final String PCOTOCOL_SPP = "SPP";
+        private final String PCOTOCOL_BLESPP = "BLE | SPP";
+        public String type;
         public ConnectedDevice(BluetoothDevice device, Activity activity) {
             this.mdevice = device;
             this.mactivity = activity;
@@ -172,7 +177,6 @@ public class Bluetooth {
                     try {
                         mbluetoothGatt.discoverServices();
                         Log.i("蓝牙连接功能","连接成功");
-                        ConStatus = true;
                     } catch (SecurityException e) {
                         e.printStackTrace();
                     }
@@ -190,28 +194,50 @@ public class Bluetooth {
             @Override
             public void onServicesDiscovered(BluetoothGatt gatt, int status) {
                 if (status == BluetoothGatt.GATT_SUCCESS) {
-                    //Log.i("蓝牙连接功能", "正在尝试获取UUID");
-                    // 获取已发现的服务
-                    //try {
-                    //    String deviceUuid = mdevice.getUuids()[0].toString();
-                    //    Log.i("蓝牙连接功能", "deviceUUID:"+deviceUuid);
-                    //} catch (SecurityException e) {
-                    //    e.printStackTrace();
-                    //}
+                    Log.i("蓝牙连接功能", "正在尝试获取UUID");
+                    String deviceUuid = null;
+                    try {
+                        deviceUuid = mdevice.getUuids()[0].toString();
+                        Log.i("蓝牙连接功能", "SPP协议 UUID:"+deviceUuid);
+                    } catch (SecurityException e) {
+                        e.printStackTrace();
+                    }
 
                     List<BluetoothGattService> services = mbluetoothGatt.getServices();
                     for (BluetoothGattService service : services) {
                         UUID serviceUUID = service.getUuid();
-                        System.out.println("服务 UUID: " + serviceUUID);
+                        Log.i("蓝牙连接功能", "服务 UUID: " + serviceUUID);
                         List<BluetoothGattCharacteristic> characteristics = service.getCharacteristics();
                         for (BluetoothGattCharacteristic characteristic : characteristics) {
                             UUID characteristicUUID = characteristic.getUuid();
-                            System.out.println("特征 UUID: " + characteristicUUID);
+                            Log.i("蓝牙连接功能", "特征 UUID: " + characteristicUUID);
                         }
+                    }
+
+                    if (services.size() != 0 && deviceUuid != null) {
+                        type = PCOTOCOL_BLESPP;
+                        Log.i("蓝牙连接功能", "该设备是 BLE | SPP 双协议");
+                    }
+                    else if (services.size() != 0) {
+                        type = PCOTOCOL_BLE;
+                        Log.i("蓝牙连接功能", "该设备是BLE协议");
+                    }
+                    else if (deviceUuid != null) {
+                        type = PCOTOCOL_SPP;
+                        Log.i("蓝牙连接功能", "该设备是SPP协议");
                     }
                 }
             }
         };
+
+        public static class BLE_Device {
+            BluetoothDevice mDevice;
+            List<BluetoothGattService> mServices;
+            public BLE_Device (BluetoothDevice mDevice, List<BluetoothGattService> mServices) {
+                this.mDevice = mDevice;
+                this.mServices = mServices;
+            }
+        }
 
         public static class SPP_Device{
             boolean socketStatus = false;

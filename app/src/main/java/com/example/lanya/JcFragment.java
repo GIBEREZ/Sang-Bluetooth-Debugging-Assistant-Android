@@ -18,6 +18,10 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.lanya.Utils.Bluetooth;
 
+import org.greenrobot.eventbus.EventBus;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -48,11 +52,32 @@ public class JcFragment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
-        // Fragment 可见
+        showPairList();
+    }
+
+    @Override
+    public void onHiddenChanged(boolean hidden) {
+        super.onHiddenChanged(hidden);
+        if (!hidden) {
+            showPairList();
+        }
+    }
+
+    private void showPairList(){
         BluetoothPairList bluetoothPairList = new BluetoothPairList();
         Pair_recyclerview.setAdapter(new DeviceListAdapter(new ArrayList<>(bluetoothPairList.getPairList())));
         Pair_recyclerview.setLayoutManager(new LinearLayoutManager(getActivity()));
     }
+
+    public static class ConnectionEvent {
+        public final String mMac;
+        public final BluetoothDevice mDevice;
+        public ConnectionEvent(String mac, BluetoothDevice device) {
+            this.mMac = mac;
+            this.mDevice = device;
+        }
+    }
+
 
     public class BluetoothPairList extends Bluetooth.BluetoothPairList {
         Set<BluetoothDevice> mPairDevice;
@@ -77,7 +102,7 @@ public class JcFragment extends Fragment {
         }
     }
 
-    public class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.ViewHolder> {
+    public static class DeviceListAdapter extends RecyclerView.Adapter<DeviceListAdapter.ViewHolder> {
         public List<BluetoothDevice> mDeviceList;
 
         public DeviceListAdapter(List<BluetoothDevice> DeviceList) {
@@ -96,14 +121,43 @@ public class JcFragment extends Fragment {
             BluetoothDevice device = mDeviceList.get(position);
             try {
                 if (device.getName() == null || device.getName().isEmpty()) {
-                    holder.text1.setText(device.getAddress());
+                    holder.item_text.setText(device.getAddress());
                 }
                 else {
-                    holder.text1.setText(device.getName());
+                    holder.item_text.setText(device.getName());
                 }
+                holder.item_mac.setText("Mac:" + device.getAddress());
             } catch (SecurityException e) {
                 e.printStackTrace();
             }
+
+            holder.PD_item_connect.setOnClickListener(v -> {
+                EventBus.getDefault().post(new ConnectionEvent(device.getAddress(), device));
+            });
+
+            holder.PD_item_delete.setOnClickListener(v -> {
+                try {
+                    // 使用反射获取removeBond方法
+                    Method method = device.getClass().getMethod("removeBond", (Class[]) null);
+                    // 调用removeBond方法删除配对
+                    method.invoke(device, (Object[]) null);
+                    // 记录成功的日志信息
+                    Log.d("蓝牙功能", "解除配对设备，成功解除配对: " + device.getName());
+                } catch (NoSuchMethodException e) {
+                    // 捕获方法不存在异常
+                    Log.e("蓝牙功能", "解除配对设备，方法不存在: removeBond", e);
+                } catch (IllegalAccessException e) {
+                    // 捕获方法访问权限异常
+                    Log.e("蓝牙功能", "解除配对设备，无法访问方法: removeBond", e);
+                } catch (InvocationTargetException e) {
+                    // 捕获调用目标异常
+                    Log.e("蓝牙功能", "解除配对设备，调用目标异常: removeBond", e);
+                } catch (SecurityException e) {
+                    // 捕获安全性异常
+                    Log.e("蓝牙功能", "解除配对设备，安全性异常: removeBond", e);
+                }
+                removeItem(mDeviceList.indexOf(device));
+            });
         }
 
         @Override
@@ -111,10 +165,16 @@ public class JcFragment extends Fragment {
             return mDeviceList.size();
         }
 
-        public void addDeviceitem(BluetoothDevice mbluetoothdevice) {
+        public void addItem(BluetoothDevice mbluetoothdevice) {
             int position = mDeviceList.size();
             mDeviceList.add(mbluetoothdevice);
             notifyItemInserted(position);
+        }
+
+        // 删除指定位置的项目
+        public void removeItem(int position) {
+            mDeviceList.remove(position);
+            notifyItemRemoved(position);
         }
 
         public void clearData() {
@@ -123,17 +183,22 @@ public class JcFragment extends Fragment {
         }
 
         class ViewHolder extends RecyclerView.ViewHolder {
-            TextView text1;
+            TextView item_text;
+            TextView item_mac;
             ImageView Image1;
             LinearLayout panel;
+            ImageView PD_item_connect;
+            ImageView PD_item_delete;
             boolean isUp = false;
             public ViewHolder(@NonNull View itemView) {
                 super(itemView);
-                text1 = itemView.findViewById(R.id.PD_item_text);
+                item_text = itemView.findViewById(R.id.PD_item_text);
                 Image1 = itemView.findViewById(R.id.Popup);
                 panel = itemView.findViewById(R.id.panel);
-
+                item_mac = itemView.findViewById(R.id.PD_item_mac);
                 panel.setVisibility(View.GONE);
+                PD_item_connect = itemView.findViewById(R.id.PD_item_connect);
+                PD_item_delete = itemView.findViewById(R.id.PD_item_delete);
 
                 Image1.setOnClickListener(v -> {
                     if (isUp) {
