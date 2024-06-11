@@ -171,7 +171,6 @@ public class JcFragment extends Fragment {
             notifyItemInserted(position);
         }
 
-        // 删除指定位置的项目
         public void removeItem(int position) {
             mDeviceList.remove(position);
             notifyItemRemoved(position);

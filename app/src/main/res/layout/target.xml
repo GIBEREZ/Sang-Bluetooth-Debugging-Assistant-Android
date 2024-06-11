@@ -79,6 +79,7 @@
                 android:id="@+id/Rssi_text"
                 android:layout_width="50dp"
                 android:layout_height="wrap_content"
+                android:textColor="@color/black"
                 android:text=" -98dB"/>
         </LinearLayout>
 

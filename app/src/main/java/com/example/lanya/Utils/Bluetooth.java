@@ -146,13 +146,15 @@ public class Bluetooth {
         public BluetoothDevice mdevice;
         BluetoothGatt mbluetoothGatt;
         Activity mactivity;
+        ConnectionCallback callback;
         private final String PCOTOCOL_BLE = "BLE";
         private final String PCOTOCOL_SPP = "SPP";
         private final String PCOTOCOL_BLESPP = "BLE | SPP";
         public String type;
-        public ConnectedDevice(BluetoothDevice device, Activity activity) {
+        public ConnectedDevice(BluetoothDevice device, Activity activity, ConnectionCallback callback) {
             this.mdevice = device;
             this.mactivity = activity;
+            this.callback = callback;
             try {
                 mbluetoothGatt = device.connectGatt(activity, false, connectCallback);
             } catch (SecurityException e) {
@@ -160,13 +162,19 @@ public class Bluetooth {
             }
         }
 
-        public ConnectedDevice(BluetoothAdapter bluetoothAdapter, String address, Activity activity) {
-            mdevice = bluetoothAdapter.getRemoteDevice(address);
+        public ConnectedDevice(BluetoothAdapter bluetoothAdapter, String address, Activity activity, ConnectionCallback callback) {
+            this.mdevice = bluetoothAdapter.getRemoteDevice(address);
+            this.callback = callback;
             try {
                 mbluetoothGatt = mdevice.connectGatt(activity, false, connectCallback);
             } catch (SecurityException e) {
                 e.printStackTrace();
             }
+        }
+
+        public interface ConnectionCallback {
+            void onConnectSuccess(BluetoothGatt mBluetoothGatt, String PCOTOCOL);
+            void onConnectFailed(BluetoothDevice device);
         }
 
         private final BluetoothGattCallback connectCallback = new BluetoothGattCallback() {
@@ -184,6 +192,7 @@ public class Bluetooth {
                     // 断开连接
                     try {
                         mbluetoothGatt.close();
+                        callback.onConnectFailed(mdevice);
                         Log.i("蓝牙连接功能","连接失败");
                     } catch (SecurityException e) {
                         e.printStackTrace();
@@ -194,7 +203,7 @@ public class Bluetooth {
             @Override
             public void onServicesDiscovered(BluetoothGatt gatt, int status) {
                 if (status == BluetoothGatt.GATT_SUCCESS) {
-                    Log.i("蓝牙连接功能", "正在尝试获取UUID");
+                    Log.i("蓝牙连接功能", "正在尝试获取SPP_UUID");
                     String deviceUuid = null;
                     try {
                         deviceUuid = mdevice.getUuids()[0].toString();
@@ -203,6 +212,7 @@ public class Bluetooth {
                         e.printStackTrace();
                     }
 
+                    Log.i("蓝牙连接功能", "正在尝试获取BLE_UUID");
                     List<BluetoothGattService> services = mbluetoothGatt.getServices();
                     for (BluetoothGattService service : services) {
                         UUID serviceUUID = service.getUuid();
@@ -226,6 +236,7 @@ public class Bluetooth {
                         type = PCOTOCOL_SPP;
                         Log.i("蓝牙连接功能", "该设备是SPP协议");
                     }
+                    callback.onConnectSuccess(mbluetoothGatt, type);
                 }
             }
         };

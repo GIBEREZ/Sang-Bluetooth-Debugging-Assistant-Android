@@ -21,10 +21,9 @@ public class MainActivity extends AppCompatActivity {
     public GPS gps_utils = new GPS(this);
     public Bluetooth bluetooth = new Bluetooth(this);
     private final JcFragment mJcFragment = new JcFragment(bluetooth);
-    private final MessageFragment mMessageFragment = new MessageFragment();
+    private final MessageFragment mMessageFragment = new MessageFragment(bluetooth);
     private final GlobalFragment mGlobalFragment = new GlobalFragment(bluetooth);
     private final SettingFragment mSettingFragment = new SettingFragment();
-    Bluetooth.ConnectedDevice.SPP_Device Sdevice;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

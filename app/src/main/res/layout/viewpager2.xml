@@ -18,7 +18,7 @@
             android:id="@+id/viewpager_name"
             android:layout_width="wrap_content"
             android:layout_height="20dp"
-            android:text="设备名称:">
+            android:text="设备名称:  ">
         </TextView>
 
         <TextView
@@ -26,7 +26,7 @@
             android:layout_width="wrap_content"
             android:layout_height="20dp"
             android:layout_below="@id/viewpager_name"
-            android:text="设备协议:">
+            android:text="设备协议:  ">
         </TextView>
 
         <TextView
@@ -34,22 +34,13 @@
             android:layout_width="wrap_content"
             android:layout_height="20dp"
             android:layout_below="@id/viewpager_protocol"
-            android:text="设备地址:">
-        </TextView>
-
-        <TextView
-            android:id="@+id/viewpager_zt"
-            android:layout_width="wrap_content"
-            android:layout_height="20dp"
-            android:layout_below="@id/viewpager_uuid"
-            android:text="连接状态:">
+            android:text="设备地址:  ">
         </TextView>
 
         <androidx.cardview.widget.CardView
             android:layout_width="100dp"
             android:layout_height="wrap_content"
-            android:layout_alignTop="@id/viewpager_zt"
-            android:layout_toEndOf="@id/viewpager_zt"
+            android:layout_below="@id/viewpager_uuid"
             app:cardCornerRadius="6dp">
             <TextView
                 android:paddingStart="10dp"
