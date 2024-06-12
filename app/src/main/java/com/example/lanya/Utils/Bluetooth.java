@@ -142,6 +142,42 @@ public class Bluetooth {
         }
     }
 
+    public static String getCharacteristicProperties(BluetoothGattCharacteristic characteristic) {
+        int properties = characteristic.getProperties();
+        StringBuilder propertiesStringBuilder = new StringBuilder();
+
+        if ((properties & BluetoothGattCharacteristic.PROPERTY_READ) > 0) {
+            propertiesStringBuilder.append("PROPERTY_READ | ");
+        }
+        if ((properties & BluetoothGattCharacteristic.PROPERTY_WRITE) > 0) {
+            propertiesStringBuilder.append("PROPERTY_WRITE | ");
+        }
+        if ((properties & BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE) > 0) {
+            propertiesStringBuilder.append("PROPERTY_WRITE_NO_RESPONSE | ");
+        }
+        if ((properties & BluetoothGattCharacteristic.PROPERTY_NOTIFY) > 0) {
+            propertiesStringBuilder.append("PROPERTY_NOTIFY | ");
+        }
+        if ((properties & BluetoothGattCharacteristic.PROPERTY_INDICATE) > 0) {
+            propertiesStringBuilder.append("PROPERTY_INDICATE | ");
+        }
+        if ((properties & BluetoothGattCharacteristic.PROPERTY_BROADCAST) > 0) {
+            propertiesStringBuilder.append("PROPERTY_BROADCAST | ");
+        }
+        if ((properties & BluetoothGattCharacteristic.PROPERTY_SIGNED_WRITE) > 0) {
+            propertiesStringBuilder.append("PROPERTY_SIGNED_WRITE | ");
+        }
+        if ((properties & BluetoothGattCharacteristic.PROPERTY_EXTENDED_PROPS) > 0) {
+            propertiesStringBuilder.append("PROPERTY_EXTENDED_PROPS | ");
+        }
+
+        if (propertiesStringBuilder.length() > 0) {
+            propertiesStringBuilder.setLength(propertiesStringBuilder.length() - 3);
+        }
+
+        return propertiesStringBuilder.toString();
+    }
+
     public static class ConnectedDevice {
         public BluetoothDevice mdevice;
         BluetoothGatt mbluetoothGatt;
@@ -173,7 +209,9 @@ public class Bluetooth {
         }
 
         public interface ConnectionCallback {
-            void onConnectSuccess(BluetoothGatt mBluetoothGatt, String PCOTOCOL);
+            void onConnectSuccess(BluetoothGatt mBluetoothGatt, String PCOTOCOL, List<BluetoothGattService> bluetoothGattServiceList, String SPP_UUID);
+            void onBLEConnectSuccess(BluetoothGatt mBluetoothGatt, String PCOTOCOL, List<BluetoothGattService> bluetoothGattServiceList);
+            void onSPPConnectSuccess(BluetoothGatt mBluetoothGatt, String PCOTOCOL, String SPP_UUID);
             void onConnectFailed(BluetoothDevice device);
         }
 
@@ -204,12 +242,14 @@ public class Bluetooth {
             public void onServicesDiscovered(BluetoothGatt gatt, int status) {
                 if (status == BluetoothGatt.GATT_SUCCESS) {
                     Log.i("蓝牙连接功能", "正在尝试获取SPP_UUID");
-                    String deviceUuid = null;
+                    String SPP_UUID = null;
                     try {
-                        deviceUuid = mdevice.getUuids()[0].toString();
-                        Log.i("蓝牙连接功能", "SPP协议 UUID:"+deviceUuid);
+                        SPP_UUID = mdevice.getUuids()[0].toString();
+                        Log.i("蓝牙连接功能", "SPP协议 UUID:" + SPP_UUID);
                     } catch (SecurityException e) {
                         e.printStackTrace();
+                    } catch (NullPointerException e) {
+                        Log.e("蓝牙连接功能", "获取 SPP_UUID 时发生错误：设备可能未提供 SPP_UUID");
                     }
 
                     Log.i("蓝牙连接功能", "正在尝试获取BLE_UUID");
@@ -224,19 +264,22 @@ public class Bluetooth {
                         }
                     }
 
-                    if (services.size() != 0 && deviceUuid != null) {
+                    if (services.size() != 0 && SPP_UUID != null) {
                         type = PCOTOCOL_BLESPP;
                         Log.i("蓝牙连接功能", "该设备是 BLE | SPP 双协议");
+                        callback.onConnectSuccess(mbluetoothGatt, type, services, SPP_UUID);
                     }
                     else if (services.size() != 0) {
                         type = PCOTOCOL_BLE;
                         Log.i("蓝牙连接功能", "该设备是BLE协议");
+                        callback.onBLEConnectSuccess(mbluetoothGatt, type, services);
                     }
-                    else if (deviceUuid != null) {
+                    else if (SPP_UUID != null) {
                         type = PCOTOCOL_SPP;
+                        Log.e("蓝牙连接功能", "获取 BLE_UUID 时发生错误：设备可能未提供 BLE_UUID");
                         Log.i("蓝牙连接功能", "该设备是SPP协议");
+                        callback.onSPPConnectSuccess(mbluetoothGatt, type, SPP_UUID);
                     }
-                    callback.onConnectSuccess(mbluetoothGatt, type);
                 }
             }
         };

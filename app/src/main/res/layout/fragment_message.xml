@@ -6,8 +6,8 @@
     android:id="@+id/MessageFragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#EBEBEB"
-    tools:context=".MainActivity">
+    tools:context=".MainActivity"
+    android:background="#EBEBEB">
 
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
@@ -21,19 +21,21 @@
                 android:id="@+id/viewPager"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_above="@+id/addButton"
+                android:layout_above="@+id/tabLayout"
                 android:layout_alignParentTop="true"
                 android:layout_alignParentStart="true"
                 android:layout_alignParentEnd="true"
+                android:background="#EBEBEB"
                 android:layout_weight="1" />
 
-            <Button
-                android:id="@+id/addButton"
-                android:layout_width="wrap_content"
+            <com.google.android.material.tabs.TabLayout
+                android:id="@+id/tabLayout"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="添加布局"
                 android:layout_alignParentBottom="true"
-                android:layout_centerHorizontal="true" />
+                android:layout_gravity="center"
+                android:background="#EBEBEB"
+                app:tabIndicatorHeight="0dp"/>
         </RelativeLayout>
 
     </androidx.cardview.widget.CardView>

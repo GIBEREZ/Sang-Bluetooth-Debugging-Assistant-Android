@@ -12,19 +12,23 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="10dp">
+        android:padding="20dp">
 
         <TextView
             android:id="@+id/viewpager_name"
             android:layout_width="wrap_content"
-            android:layout_height="20dp"
-            android:text="设备名称:  ">
+            android:layout_height="wrap_content"
+            android:textSize="22sp"
+            android:textColor="@color/black"
+            android:textStyle="bold"
+            android:text="设备名称">
         </TextView>
 
         <TextView
             android:id="@+id/viewpager_protocol"
             android:layout_width="wrap_content"
             android:layout_height="20dp"
+            android:textColor="@color/black"
             android:layout_below="@id/viewpager_name"
             android:text="设备协议:  ">
         </TextView>
@@ -33,11 +37,13 @@
             android:id="@+id/viewpager_uuid"
             android:layout_width="wrap_content"
             android:layout_height="20dp"
+            android:textColor="@color/black"
             android:layout_below="@id/viewpager_protocol"
             android:text="设备地址:  ">
         </TextView>
 
         <androidx.cardview.widget.CardView
+            android:id="@+id/CardView"
             android:layout_width="100dp"
             android:layout_height="wrap_content"
             android:layout_below="@id/viewpager_uuid"
@@ -52,6 +58,14 @@
                 android:text="已连接">
             </TextView>
         </androidx.cardview.widget.CardView>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/viewpager_recyclerview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="10dp"
+            android:layout_below="@id/CardView">
+        </androidx.recyclerview.widget.RecyclerView>
 
     </RelativeLayout>
 
