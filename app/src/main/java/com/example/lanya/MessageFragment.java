@@ -352,9 +352,11 @@ public class MessageFragment extends Fragment {
     public static class CharacteristicEvent{
         public BluetoothGattCharacteristic mCharacteristic;
         public BluetoothGatt mBluetoothGatt;
-        CharacteristicEvent (BluetoothGatt bluetoothGatt, BluetoothGattCharacteristic characteristic){
+        public String mCharacteristicUUID;
+        CharacteristicEvent (BluetoothGatt bluetoothGatt, BluetoothGattCharacteristic characteristic, String characteristicUUID){
             mBluetoothGatt = bluetoothGatt;
             mCharacteristic = characteristic;
+            mCharacteristicUUID = characteristicUUID;
         }
     }
 
@@ -388,7 +390,7 @@ public class MessageFragment extends Fragment {
                 xz1.setOnClickListener(v1 -> {
                     Intent intent = new Intent(getActivity(), commActivity.class);
                     Log.i("UI界面","开始发送characteristicEvent事件");
-                    EventBus.getDefault().postSticky(new CharacteristicEvent(mGattList.get(index),characteristic));
+                    EventBus.getDefault().postSticky(new CharacteristicEvent(mGattList.get(index),characteristic,String.valueOf(characteristicUUID)));
                     startActivity(intent);
                     bottomSheetDialog.hide();
                 });

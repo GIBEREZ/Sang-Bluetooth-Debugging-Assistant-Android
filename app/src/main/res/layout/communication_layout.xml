@@ -27,7 +27,7 @@
             android:id="@+id/communication_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="设备名称"
+            android:text="特征名称"
             android:textSize="22sp"
             android:textColor="@color/black"
             android:textStyle="bold"/>

@@ -49,6 +49,8 @@ public class commActivity extends Activity {
         TextView communication_read_button = findViewById(R.id.communication_read_button);
         TextView communication_write_button = findViewById(R.id.communication_write_button);
 
+
+
         communication_read_button.setOnClickListener(v -> {
             Log.i("蓝牙传输功能","用户请求向指定特征进行读取");
             try {
@@ -82,6 +84,9 @@ public class commActivity extends Activity {
     public void onCharacteristicEvent(MessageFragment.CharacteristicEvent event) {
         mCharacteristic = event.mCharacteristic;
         mBluetoothGatt = event.mBluetoothGatt;
+
+        TextView communication_uuid = findViewById(R.id.communication_uuid);
+        communication_uuid.setText(event.mCharacteristicUUID);
 
         Log.i("UI界面","已初始化完毕commActivity，接下来接收参数，生成UI界面的数据");
 
