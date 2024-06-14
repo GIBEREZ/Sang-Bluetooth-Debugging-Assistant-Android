@@ -11,6 +11,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -150,11 +151,6 @@ public class MessageFragment extends Fragment {
             }
 
             @Override
-            public void onFeatureValueUpdate(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, byte[] value) {
-
-            }
-
-            @Override
             public void onConnectFailed(BluetoothDevice device) {
                 getActivity().runOnUiThread(() -> {
                     customPagerAdapter.deleteItem(device);
@@ -253,6 +249,8 @@ public class MessageFragment extends Fragment {
             }
 
             if (Objects.equals(data.PCOTOCOL, "BLE | SPP")) {
+                holder.viewpager_SPP_Layout.setVisibility(View.VISIBLE);
+                holder.viewpager_SPP_uuid.setText(data.SPP_UUID);
                 holder.serviceListAdapter = new serviceListAdapter(data.bluetoothGattService);
                 holder.recyclerView.setAdapter(holder.serviceListAdapter);
                 holder.recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -263,7 +261,8 @@ public class MessageFragment extends Fragment {
                 holder.recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
             }
             else if (Objects.equals(data.PCOTOCOL, "SPP")) {
-
+                holder.viewpager_SPP_Layout.setVisibility(View.VISIBLE);
+                holder.viewpager_SPP_uuid.setText(data.SPP_UUID);
             }
         }
 
@@ -278,12 +277,16 @@ public class MessageFragment extends Fragment {
             TextView viewpager_uuid;
             RecyclerView recyclerView;
             serviceListAdapter serviceListAdapter;
+            RelativeLayout viewpager_SPP_Layout;
+            TextView viewpager_SPP_uuid;
             CustomViewHolder(View itemView) {
                 super(itemView);
                 viewpager_name = itemView.findViewById(R.id.viewpager_name);
                 viewpager_protocol = itemView.findViewById(R.id.viewpager_protocol);
                 viewpager_uuid = itemView.findViewById(R.id.viewpager_uuid);
                 recyclerView = itemView.findViewById(R.id.viewpager_recyclerview);
+                viewpager_SPP_Layout = itemView.findViewById(R.id.viewpager_SPP_Layout);
+                viewpager_SPP_uuid = itemView.findViewById(R.id.viewpager_SPP_uuid);
             }
         }
     }

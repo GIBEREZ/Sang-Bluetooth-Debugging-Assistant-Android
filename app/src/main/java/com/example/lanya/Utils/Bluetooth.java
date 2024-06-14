@@ -25,6 +25,8 @@ import android.widget.Toast;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import org.greenrobot.eventbus.EventBus;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -178,6 +180,17 @@ public class Bluetooth {
         return propertiesStringBuilder.toString();
     }
 
+    public static class featureData {
+        public BluetoothGatt mBluetoothGatt;
+        public BluetoothGattCharacteristic mCharacteristic;
+        public byte[] mValue;
+        public featureData(BluetoothGatt BluetoothGatt, BluetoothGattCharacteristic Characteristic, byte[] Value) {
+            mBluetoothGatt = BluetoothGatt;
+            mCharacteristic = Characteristic;
+            mValue = Value;
+        }
+    }
+
     public static class ConnectedDevice {
         public BluetoothDevice mdevice;
         BluetoothGatt mbluetoothGatt;
@@ -215,8 +228,6 @@ public class Bluetooth {
             void onBLEConnectSuccess(BluetoothGatt mBluetoothGatt, String PCOTOCOL, List<BluetoothGattService> bluetoothGattServiceList);
 
             void onSPPConnectSuccess(BluetoothGatt mBluetoothGatt, String PCOTOCOL, String SPP_UUID);
-
-            void onFeatureValueUpdate(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, byte[] value);
 
             void onConnectFailed(BluetoothDevice device);
         }
@@ -291,7 +302,7 @@ public class Bluetooth {
                 if (status == BluetoothGatt.GATT_SUCCESS) {
                     byte[] value = characteristic.getValue();
                     Log.i("蓝牙传输功能", "读取到特征值");
-                    callback.onFeatureValueUpdate(gatt, characteristic, value);
+                    EventBus.getDefault().postSticky(new featureData(gatt, characteristic, value));
                 } else {
                     Log.e("蓝牙传输功能", "onCharacteristicRead 接收到错误状态: " + status);
                 }

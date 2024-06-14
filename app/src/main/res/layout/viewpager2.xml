@@ -60,12 +60,54 @@
             </TextView>
         </androidx.cardview.widget.CardView>
 
+        <RelativeLayout
+            android:id="@+id/viewpager_SPP_Layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="25dp"
+            android:layout_below="@id/CardView"
+            android:orientation="vertical"
+            android:background="#EFEFEF"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/viewpager_SPP_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/black"
+                android:text="SPP协议接口: ">
+            </TextView>
+
+            <TextView
+                android:id="@+id/viewpager_SPP_uuid"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/viewpager_SPP_title"
+                android:textSize="10sp"
+                android:text="特征UUID">
+            </TextView>
+
+            <FrameLayout
+                android:layout_width="20dp"
+                android:layout_height="match_parent"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentEnd="true"
+                android:layout_alignBottom="@id/viewpager_SPP_uuid">
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_gravity="center"
+                    android:background="@drawable/send">
+                </ImageView>
+            </FrameLayout>
+        </RelativeLayout>
+
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/viewpager_recyclerview"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginTop="10dp"
-            android:layout_below="@id/CardView">
+            android:layout_below="@id/viewpager_SPP_Layout">
         </androidx.recyclerview.widget.RecyclerView>
 
     </RelativeLayout>

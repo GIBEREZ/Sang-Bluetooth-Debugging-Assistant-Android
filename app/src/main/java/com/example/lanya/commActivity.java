@@ -17,7 +17,6 @@ import com.example.lanya.Utils.Bluetooth;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
-import org.w3c.dom.Text;
 
 public class commActivity extends Activity {
     LinearLayout communication_write_Linear;
@@ -51,14 +50,21 @@ public class commActivity extends Activity {
         TextView communication_write_button = findViewById(R.id.communication_write_button);
 
         communication_read_button.setOnClickListener(v -> {
-
+            Log.i("蓝牙传输功能","用户请求向指定特征进行读取");
+            try {
+                mBluetoothGatt.readCharacteristic(mCharacteristic);
+            } catch (SecurityException e) {
+                e.printStackTrace();
+                Log.e("蓝牙传输功能","读取异常");
+            }
+            Log.i("蓝牙传输功能","读取完毕");
         });
 
         communication_write_button.setOnClickListener(v -> {
             Log.i("蓝牙传输功能","用户向指定特征写入Value");
             String value = communication_write_input.getText().toString();
             if (value.equals("")) {
-                Log.i("蓝牙传输功能","写入值为空！");
+                Log.e("蓝牙传输功能","写入值为空！");
                 return;
             }
             mCharacteristic.setValue(value.getBytes());
@@ -66,6 +72,7 @@ public class commActivity extends Activity {
                 mBluetoothGatt.writeCharacteristic(mCharacteristic);
             } catch (SecurityException e) {
                 e.printStackTrace();
+                Log.e("蓝牙传输功能","写入异常");
             }
             Log.i("蓝牙传输功能","写入完毕");
         });
@@ -106,6 +113,14 @@ public class commActivity extends Activity {
         }
         if (PCOTOCOL.contains("PROPERTY_EXTENDED_PROPS")) {
             findViewById(R.id.EXTENDED_PROPS).setVisibility(View.VISIBLE);
+        }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onfeatureDataEvent(Bluetooth.featureData event) {
+        if (event.mBluetoothGatt == mBluetoothGatt && event.mCharacteristic == mCharacteristic) {
+            EditText communication_read_input = findViewById(R.id.communication_read_input);
+            communication_read_input.setText(event.mValue.toString());
         }
     }
 
