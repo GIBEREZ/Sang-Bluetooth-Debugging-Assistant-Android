@@ -187,6 +187,7 @@ public class Bluetooth {
         private final String PCOTOCOL_SPP = "SPP";
         private final String PCOTOCOL_BLESPP = "BLE | SPP";
         public String type;
+
         public ConnectedDevice(BluetoothDevice device, Activity activity, ConnectionCallback callback) {
             this.mdevice = device;
             this.mactivity = activity;
@@ -210,8 +211,13 @@ public class Bluetooth {
 
         public interface ConnectionCallback {
             void onConnectSuccess(BluetoothGatt mBluetoothGatt, String PCOTOCOL, List<BluetoothGattService> bluetoothGattServiceList, String SPP_UUID);
+
             void onBLEConnectSuccess(BluetoothGatt mBluetoothGatt, String PCOTOCOL, List<BluetoothGattService> bluetoothGattServiceList);
+
             void onSPPConnectSuccess(BluetoothGatt mBluetoothGatt, String PCOTOCOL, String SPP_UUID);
+
+            void onFeatureValueUpdate(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, byte[] value);
+
             void onConnectFailed(BluetoothDevice device);
         }
 
@@ -222,7 +228,7 @@ public class Bluetooth {
                     // 连接成功，发现服务
                     try {
                         mbluetoothGatt.discoverServices();
-                        Log.i("蓝牙连接功能","连接成功");
+                        Log.i("蓝牙连接功能", "连接成功");
                     } catch (SecurityException e) {
                         e.printStackTrace();
                     }
@@ -231,7 +237,7 @@ public class Bluetooth {
                     try {
                         mbluetoothGatt.close();
                         callback.onConnectFailed(mdevice);
-                        Log.i("蓝牙连接功能","连接失败");
+                        Log.i("蓝牙连接功能", "连接失败");
                     } catch (SecurityException e) {
                         e.printStackTrace();
                     }
@@ -268,13 +274,11 @@ public class Bluetooth {
                         type = PCOTOCOL_BLESPP;
                         Log.i("蓝牙连接功能", "该设备是 BLE | SPP 双协议");
                         callback.onConnectSuccess(mbluetoothGatt, type, services, SPP_UUID);
-                    }
-                    else if (services.size() != 0) {
+                    } else if (services.size() != 0) {
                         type = PCOTOCOL_BLE;
                         Log.i("蓝牙连接功能", "该设备是BLE协议");
                         callback.onBLEConnectSuccess(mbluetoothGatt, type, services);
-                    }
-                    else if (SPP_UUID != null) {
+                    } else if (SPP_UUID != null) {
                         type = PCOTOCOL_SPP;
                         Log.e("蓝牙连接功能", "获取 BLE_UUID 时发生错误：设备可能未提供 BLE_UUID");
                         Log.i("蓝牙连接功能", "该设备是SPP协议");
@@ -282,99 +286,110 @@ public class Bluetooth {
                     }
                 }
             }
+            @Override
+            public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
+                if (status == BluetoothGatt.GATT_SUCCESS) {
+                    byte[] value = characteristic.getValue();
+                    Log.i("蓝牙传输功能", "读取到特征值");
+                    callback.onFeatureValueUpdate(gatt, characteristic, value);
+                } else {
+                    Log.e("蓝牙传输功能", "onCharacteristicRead 接收到错误状态: " + status);
+                }
+            }
         };
 
-        public static class BLE_Device {
-            BluetoothDevice mDevice;
-            List<BluetoothGattService> mServices;
-            public BLE_Device (BluetoothDevice mDevice, List<BluetoothGattService> mServices) {
-                this.mDevice = mDevice;
-                this.mServices = mServices;
+    public static class BLE_Device {
+        BluetoothDevice mDevice;
+        List<BluetoothGattService> mServices;
+
+        public BLE_Device(BluetoothDevice mDevice, List<BluetoothGattService> mServices) {
+            this.mDevice = mDevice;
+            this.mServices = mServices;
+        }
+    }
+}
+
+    public static class SPP_Device{
+        boolean socketStatus = false;
+        BluetoothDevice mdevice;
+        BluetoothSocket socket = null;
+        OutputStream outputStream;
+        InputStream inputStream;
+        HandlerThread handlerThread;
+        Handler handler;
+        UUID SPP_UUID;
+
+        public SPP_Device(BluetoothDevice device, UUID SPP_UUID) {
+            this.mdevice = device;
+            this.SPP_UUID = SPP_UUID;
+        }
+
+        public void connect() {
+            try {
+                socket = mdevice.createRfcommSocketToServiceRecord(SPP_UUID);
+                socket.connect();
+                Log.i("已连接Socket设备", "连接到: " + mdevice.getName());
+                socketStatus = true;
+                handlerThread = new HandlerThread("BluetoothHandlerThread");
+                handlerThread.start();
+                handler = new Handler(handlerThread.getLooper()) {
+                    @Override
+                    public void handleMessage(Message msg) {
+                        read(msg);
+                    }
+                };
+            } catch (SecurityException | IOException e) {
+                e.printStackTrace();
+                try {
+                    if (socket != null) {
+                        socket.close();
+                    }
+                    socketStatus = false;
+                } catch (SecurityException | IOException e2) {
+                    e2.printStackTrace();
+                    socketStatus = false;
+                }
             }
         }
 
-        public static class SPP_Device{
-            boolean socketStatus = false;
-            BluetoothDevice mdevice;
-            BluetoothSocket socket = null;
-            OutputStream outputStream;
-            InputStream inputStream;
-            HandlerThread handlerThread;
-            Handler handler;
-            UUID SPP_UUID;
-
-            public SPP_Device(BluetoothDevice device, UUID SPP_UUID) {
-                this.mdevice = device;
-                this.SPP_UUID = SPP_UUID;
+        public void close() {
+            handlerThread.quit();
+            try {
+                socketStatus = false;
+                socket.close();
+            } catch (SecurityException | IOException e) {
+                e.printStackTrace();
             }
+        }
 
-            public void connect() {
-                try {
-                    socket = mdevice.createRfcommSocketToServiceRecord(SPP_UUID);
-                    socket.connect();
-                    Log.i("已连接Socket设备", "连接到: " + mdevice.getName());
-                    socketStatus = true;
-                    handlerThread = new HandlerThread("BluetoothHandlerThread");
-                    handlerThread.start();
-                    handler = new Handler(handlerThread.getLooper()) {
-                        @Override
-                        public void handleMessage(Message msg) {
-                            read(msg);
-                        }
-                    };
-                } catch (SecurityException | IOException e) {
-                    e.printStackTrace();
-                    try {
-                        if (socket != null) {
-                            socket.close();
-                        }
-                        socketStatus = false;
-                    } catch (SecurityException | IOException e2) {
-                        e2.printStackTrace();
-                        socketStatus = false;
-                    }
-                }
+        public boolean send(String msg) {
+            if (!socketStatus) {
+                return false;
             }
-
-            public void close() {
-                handlerThread.quit();
-                try {
-                    socketStatus = false;
-                    socket.close();
-                } catch (SecurityException | IOException e) {
-                    e.printStackTrace();
-                }
+            try {
+                outputStream = socket.getOutputStream();
+                outputStream.write(msg.getBytes());
+                outputStream.flush();
+                Log.i("已连接Socket设备","发送数据："+msg);
+            } catch (IOException e) {
+                e.printStackTrace();
+                return false;
             }
+            return true;
+        }
 
-            public boolean send(String msg) {
-                if (!socketStatus) {
-                    return false;
+        public void read(Message msg) {
+            try {
+                Log.i("已连接Socket设备", "收到数据，解析中");
+                byte[] buffer = new byte[1024];
+                int bytes;
+                while ((bytes = inputStream.read(buffer)) != -1) {
+                    String receivedMessage = new String(buffer, 0, bytes);
+                    Log.i("已连接Socket设备", "收到:" + receivedMessage);
+                    // 事件处理模型，还未写
                 }
-                try {
-                    outputStream = socket.getOutputStream();
-                    outputStream.write(msg.getBytes());
-                    outputStream.flush();
-                    Log.i("已连接Socket设备","发送数据："+msg);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    return false;
-                }
-                return true;
-            }
-
-            public void read(Message msg) {
-                try {
-                    Log.i("已连接Socket设备", "收到数据，解析中");
-                    byte[] buffer = new byte[1024];
-                    int bytes;
-                    while ((bytes = inputStream.read(buffer)) != -1) {
-                        String receivedMessage = new String(buffer, 0, bytes);
-                        Log.i("已连接Socket设备", "收到:" + receivedMessage);
-                        // 事件处理模型，还未写
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
     }

@@ -4,6 +4,7 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -21,6 +22,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.example.lanya.Utils.Bluetooth;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 
@@ -35,10 +38,12 @@ import java.util.UUID;
 
 public class MessageFragment extends Fragment {
 
-    Bluetooth mbluetooth;
+    public Bluetooth mbluetooth;
     private ViewPager2 viewpager2;
     private TabLayout tabLayout;
     private CustomPagerAdapter customPagerAdapter;
+    private List<BluetoothGatt> mGattList = new ArrayList<>();
+    private int index = -1;
 
     public MessageFragment(Bluetooth bluetooth) {
         mbluetooth = bluetooth;
@@ -69,6 +74,7 @@ public class MessageFragment extends Fragment {
                 super.onPageSelected(position);
                 // 输出当前选中页面的索引
                 Log.d("ViewPager", "当前索引: " + position);
+                index = position;
             }
         });
         return view;
@@ -117,8 +123,8 @@ public class MessageFragment extends Fragment {
     @Subscribe(threadMode = ThreadMode.BACKGROUND)
     public void onConnectionEvent(JcFragment.ConnectionEvent event) {
         final BluetoothGatt[] bluetoothGatt = new BluetoothGatt[1];
+        Log.i("UI界面","初始化新的蓝牙连接UI");
         new Bluetooth.ConnectedDevice(mbluetooth.mbluetoothAdapter, event.mMac, getActivity(), new Bluetooth.ConnectedDevice.ConnectionCallback() {
-
             @Override
             public void onConnectSuccess(BluetoothGatt mBluetoothGatt, String PCOTOCOL, List<BluetoothGattService> bluetoothGattServiceList, String SPP_UUID) {
                 bluetoothGatt[0] = mBluetoothGatt;
@@ -141,6 +147,11 @@ public class MessageFragment extends Fragment {
                 getActivity().runOnUiThread(() -> {
                     customPagerAdapter.addItem(event.mDevice, bluetoothGatt[0], new Data(PCOTOCOL,SPP_UUID));
                 });
+            }
+
+            @Override
+            public void onFeatureValueUpdate(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, byte[] value) {
+
             }
 
             @Override
@@ -183,14 +194,11 @@ public class MessageFragment extends Fragment {
 
         private List<BluetoothDevice> mDeviceList;
         private List<Data> Data_List;
-        private List<BluetoothGatt> mGattList;
-
         private int MaxNum = 8;
 
         public CustomPagerAdapter() {
             this.mDeviceList = new ArrayList<>();
             this.Data_List = new ArrayList<>();
-            this.mGattList = new ArrayList<>();
         }
 
         public void addItem(BluetoothDevice device, BluetoothGatt bluetoothGatt, Data data) {
@@ -235,6 +243,7 @@ public class MessageFragment extends Fragment {
         public void onBindViewHolder(@NonNull CustomViewHolder holder, int position) {
             BluetoothDevice device = mDeviceList.get(position);
             Data data = Data_List.get(position);
+
             try {
                 holder.viewpager_name.setText(device.getName());
                 holder.viewpager_protocol.setText("设备协议:  " + data.PCOTOCOL);
@@ -257,8 +266,6 @@ public class MessageFragment extends Fragment {
 
             }
         }
-
-
 
         @Override
         public int getItemCount() {
@@ -295,9 +302,10 @@ public class MessageFragment extends Fragment {
 
         @Override
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-            UUID serviceUUID = mGattService.get(position).getUuid();
+            BluetoothGattService bluetoothGattService = mGattService.get(position);
+            UUID serviceUUID = bluetoothGattService.getUuid();
             holder.service_item_uuid.setText(String.valueOf(serviceUUID));
-            List<BluetoothGattCharacteristic> characteristics = mGattService.get(position).getCharacteristics();
+            List<BluetoothGattCharacteristic> characteristics = bluetoothGattService.getCharacteristics();
             holder.characteristicListAdapter = new CharacteristicListAdapter(characteristics);
             holder.service_item_recyclerView.setAdapter(holder.characteristicListAdapter);
             holder.service_item_recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -328,7 +336,27 @@ public class MessageFragment extends Fragment {
         }
     }
 
-    public static class CharacteristicListAdapter extends RecyclerView.Adapter<CharacteristicListAdapter.ViewHolder> {
+    public class MyBottomSheetDialogFragment extends BottomSheetDialogFragment {
+        @Nullable
+        @Override
+        public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+            View view = inflater.inflate(R.layout.bottom_sheet_layout, container, false);
+            // 设置底部弹窗的内容和逻辑
+            return view;
+        }
+    }
+
+    public static class CharacteristicEvent{
+        public BluetoothGattCharacteristic mCharacteristic;
+        public BluetoothGatt mBluetoothGatt;
+        CharacteristicEvent (BluetoothGatt bluetoothGatt, BluetoothGattCharacteristic characteristic){
+            mBluetoothGatt = bluetoothGatt;
+            mCharacteristic = characteristic;
+        }
+    }
+
+
+    public class CharacteristicListAdapter extends RecyclerView.Adapter<CharacteristicListAdapter.ViewHolder> {
         List<BluetoothGattCharacteristic> mCharacteristic;
         public CharacteristicListAdapter(List<BluetoothGattCharacteristic> bluetoothGattCharacteristicList){
             this.mCharacteristic = bluetoothGattCharacteristicList;
@@ -347,6 +375,29 @@ public class MessageFragment extends Fragment {
             holder.characteristic_item_uuid.setText(String.valueOf(characteristicUUID));
             String authority = Bluetooth.getCharacteristicProperties(characteristic);
             holder.characteristic_item_authority.setText(authority);
+            holder.itemView.setOnClickListener(v -> {
+                Log.i("UI界面","点击的特征UUID:" + characteristicUUID);
+                BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(v.getContext());
+                View bottomSheetView = LayoutInflater.from(v.getContext()).inflate(R.layout.bottom_sheet_layout, null);
+                TextView xz1 = bottomSheetView.findViewById(R.id.bottom_sheet_xz1);
+                TextView xz2 = bottomSheetView.findViewById(R.id.bottom_sheet_xz2);
+                TextView xz3 = bottomSheetView.findViewById(R.id.bottom_sheet_xz3);
+                xz1.setOnClickListener(v1 -> {
+                    Intent intent = new Intent(getActivity(), commActivity.class);
+                    Log.i("UI界面","开始发送characteristicEvent事件");
+                    EventBus.getDefault().postSticky(new CharacteristicEvent(mGattList.get(index),characteristic));
+                    startActivity(intent);
+                    bottomSheetDialog.hide();
+                });
+                xz2.setOnClickListener(v1 -> {
+                    bottomSheetDialog.hide();
+                });
+                xz3.setOnClickListener(v1 -> {
+                    bottomSheetDialog.hide();
+                });
+                bottomSheetDialog.setContentView(bottomSheetView);
+                bottomSheetDialog.show();
+            });
         }
 
         @Override
@@ -354,16 +405,13 @@ public class MessageFragment extends Fragment {
             return mCharacteristic.size();
         }
 
-        public static class ViewHolder extends RecyclerView.ViewHolder{
+        public class ViewHolder extends RecyclerView.ViewHolder{
             TextView characteristic_item_uuid;
             TextView characteristic_item_authority;
             public ViewHolder(@NonNull View itemView) {
                 super(itemView);
                 characteristic_item_uuid = itemView.findViewById(R.id.characteristic_item_uuid);
                 characteristic_item_authority = itemView.findViewById(R.id.characteristic_item_authority);
-                itemView.setOnClickListener(v -> {
-                    
-                });
             }
         }
     }
